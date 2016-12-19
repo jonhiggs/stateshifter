@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+source $(dirname $0)/../../config
+source $(dirname $0)/../../lib/redis
+
+REDIS_KEY="${namespace}.memory_used"
+REDIS_EXPIRE=5
+
+_usage() {
+  echo "$0 [get|set]"
+}
+
+_memory_used() {
+    free -m \
+      | awk '
+        /^Mem/  {
+                    total = $2;
+                    available = $7;
+                }
+        END     {
+                    unavalable = total - available
+                    print int(100 / ( total / unavalable ))
+                }
+      '
+}
+
+redis_get || redis_set $(_memory_used)

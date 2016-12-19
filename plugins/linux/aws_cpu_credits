@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+source $(dirname $0)/../../config
+source $(dirname $0)/../../lib/aws
+source $(dirname $0)/../../lib/redis
+
+REDIS_KEY="${namespace}.aws_cpu_credit"
+REDIS_EXPIRE=300
+
+_usage() {
+  echo "$0 [get|set]"
+}
+
+_date_formatted() {
+  echo $(date -u "$@" --iso-8601=minute | cut -d+ -f1):00
+}
+
+_aws_cpu_credit() {
+  now=$(date +%s)
+  aws cloudwatch get-metric-statistics                       \
+    --namespace "AWS/EC2"                                    \
+    --metric-name "CPUCreditBalance"                         \
+    --dimensions Name=InstanceId,Value=$(instance_id)        \
+    --start-time $(_date_formatted --date="60 minutes ago")  \
+    --end-time=$(_date_formatted --date="now")               \
+    --period 60                                              \
+    --statistic Minimum                                      \
+    --query 'Datapoints[0].Minimum'                          \
+    --region 'ap-southeast-2'
+}
+
+redis_get || redis_set $(_aws_cpu_credit)
