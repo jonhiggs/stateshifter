@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+while true; do
+  for plugin in $(dirname $0)/../plugins/linux/*; do
+    echo ${plugin}
+    ${plugin} > /dev/null
+  done
+done
