@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+_usage() {
+  echo "$0 [get|set]"
+}
+
+operator=$1
+shift
+
+case ${operator} in
+  "get") tmux save-buffer -   ;;
+  "set") tmux set-buffer "$@" ;;
+  *) _usage && exit 1         ;;
+esac

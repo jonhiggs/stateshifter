@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+_usage() {
+  echo "$0 [get|set]"
+}
+
+case $1 in
+  "get") nvr --remote-expr '@'  ;;
+  "set") echo "something"       ;;
+  *)     _usage && exit 1       ;;
+esac
