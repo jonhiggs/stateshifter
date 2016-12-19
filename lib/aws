@@ -1,0 +1,9 @@
+instance_id() {
+  curl 169.254.169.254/latest/meta-data/instance-id 2> /dev/null
+}
+
+instance_type() {
+  curl 169.254.169.254/latest/meta-data/instance-type 2> /dev/null
+}
+
+# vim: ft=sh
