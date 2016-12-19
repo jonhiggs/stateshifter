@@ -1,9 +1,21 @@
-instance_id() {
+aws_instance_id() {
   curl 169.254.169.254/latest/meta-data/instance-id 2> /dev/null
 }
 
-instance_type() {
+aws_instance_type() {
   curl 169.254.169.254/latest/meta-data/instance-type 2> /dev/null
+}
+
+aws_maximum_cpu_credits() {
+  case $(aws_instance_type) in
+    "t2.nano")    echo 72   ;;
+    "t2.micro")   echo 144  ;;
+    "t2.small")   echo 288  ;;
+    "t2.medium")  echo 576  ;;
+    "t2.large")   echo 864  ;;
+    "t2.xlarge")  echo 1296 ;;
+    "t2.2xlarge") echo 1944 ;;
+  esac
 }
 
 # vim: ft=sh

@@ -14,12 +14,12 @@ _date_formatted() {
   echo $(date -u "$@" --iso-8601=minute | cut -d+ -f1):00
 }
 
-_aws_cpu_credit() {
+_aws_cpu_credits() {
   now=$(date +%s)
   aws cloudwatch get-metric-statistics                       \
     --namespace "AWS/EC2"                                    \
     --metric-name "CPUCreditBalance"                         \
-    --dimensions Name=InstanceId,Value=$(instance_id)        \
+    --dimensions Name=InstanceId,Value=$(aws_instance_id)    \
     --start-time $(_date_formatted --date="60 minutes ago")  \
     --end-time=$(_date_formatted --date="now")               \
     --period 60                                              \
@@ -28,4 +28,9 @@ _aws_cpu_credit() {
     --region 'ap-southeast-2'
 }
 
-redis_get || redis_set $(_aws_cpu_credit)
+_aws_cpu_credit_percentage() {
+  echo "100 / ( $(aws_maximum_cpu_credits) / $(_aws_cpu_credits) )" \
+    | bc
+}
+
+redis_get || redis_set $(_aws_cpu_credit_percentage)
