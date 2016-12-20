@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+source $(dirname $0)/../../config
+source $(dirname $0)/../../lib/redis
+
+REDIS_KEY="${namespace}.cpu_used"
+REDIS_EXPIRE=5
+
+_usage() {
+  echo "$0 [get|set]"
+}
+
+_cpu_used() {
+  samples_to_take=2
+  top -l${samples_to_take} -d \
+    | awk '
+        /CPU\ usage/  {
+                        gsub("%", "");
+                        sum+=$7;
+                        n++;
+                      }
+        END           { print 100 - (sum / n) }
+      '
+}
+
+redis_get || redis_set $(_cpu_used)

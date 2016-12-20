@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+source $(dirname $0)/../../config
+source $(dirname $0)/../../lib/redis
+
+REDIS_KEY="${namespace}.battery_charge"
+REDIS_EXPIRE=60
+
+_usage() {
+  echo "$0 [get|set]"
+}
+
+_battery_charge() {
+  pmset -g batt               \
+    | tail -n1                \
+    | cut -d$'\t' -f2         \
+    | awk -F\; '{ print $1 }' \
+    | sed 's/[^0-9]//'
+}
+
+redis_get || redis_set $(_battery_charge)

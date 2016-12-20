@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+source $(dirname $0)/../../config
+source $(dirname $0)/../../lib/redis
+
+REDIS_KEY="${namespace}.memory_used"
+REDIS_EXPIRE=5
+
+_usage() {
+  echo "$0 [get|set]"
+}
+
+_memory_pressure() {
+  local used=$(
+    memory_pressure             \
+      | grep 'free percentage'  \
+      | awk '{ print $5 }'      \
+      | tr -d %
+  )
+  echo $(( 100 - ${used} ))
+}
+
+redis_get || redis_set $(_memory_pressure)
