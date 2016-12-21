@@ -1,11 +1,11 @@
 redis_get() {
-  value=$(redis-cli GET "${REDIS_KEY}" | tr -d \")
+  value=$(redis-cli -h ${REDIS_HOST} GET "${REDIS_KEY}" | tr -d \")
   [[ -z ${value} ]] && return 1
   echo ${value}
 }
 
 redis_set() {
-  if [[ $(redis-cli SET "${REDIS_KEY}" "$1" EX ${REDIS_EXPIRE}) == "OK" ]]; then
+  if [[ $(redis-cli -h ${REDIS_HOST} SET "${REDIS_KEY}" "$1" EX ${REDIS_EXPIRE}) == "OK" ]]; then
     echo $1
   else
     return 1

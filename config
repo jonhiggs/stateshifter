@@ -1,2 +1,3 @@
+REDIS_HOST=10.4.0.1
 namespace=desktop
 clipboard=universal_clipboard
