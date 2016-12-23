@@ -1,5 +1,6 @@
 ---
 redis:
+  namespace: desktop
   host: 10.4.0.1
   port: 6379
 
