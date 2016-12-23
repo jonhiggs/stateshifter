@@ -17,7 +17,7 @@ end
 
 def current_value
   command = CONFIG["plugins"][@plugin]["command"]
-  `#{File.join(PROJECT_DIR, command)}`
+  `#{File.join(PROJECT_DIR, command)}`.strip
 end
 
 def update!
