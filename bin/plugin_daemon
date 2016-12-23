@@ -12,7 +12,7 @@ CONFIG = YAML.parse_file(File.join(PROJECT_DIR, "etc/config.yml")).to_ruby
 )
 
 def half_dead?
-   @redis.ttl(key) < (@max_age / 2)
+   @redis.ttl(@key) < (@max_age / 2)
 end
 
 def current_value
