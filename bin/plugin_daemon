@@ -1,7 +1,62 @@
-#!/usr/bin/env bash
-while true; do
-  for plugin in $(dirname $0)/../plugins/linux/*; do
-    echo ${plugin}
-    ${plugin} > /dev/null
-  done
-done
+#!/usr/bin/env ruby
+require 'yaml'
+require 'fileutils'
+require 'redis'
+
+PROJECT_DIR = File.join(File.dirname(__FILE__), "../")
+CONFIG = YAML.parse_file(File.join(PROJECT_DIR, "etc/config.yml")).to_ruby
+
+@redis = Redis.new(
+  :host => CONFIG["redis"]["host"],
+  :port => CONFIG["redis"]["port"],
+)
+
+def key
+  "#{CONFIG["redis"]["namespace"]}.#{@plugin}"
+end
+
+def ttl
+   @redis.ttl(key)
+end
+
+def max_age
+  CONFIG["plugins"][@plugin]["max_age"]
+end
+
+def halflife
+  max_age / 2
+end
+
+def renew_age
+  CONFIG["plugins"][@plugin]["renew_age"]
+end
+
+def command
+  CONFIG["plugins"][@plugin]["command"]
+end
+
+def get
+  @redis.get(key)
+end
+
+def set
+  puts "updating #{@plugin}"
+  @redis.set(key, current_value, :ex => max_age)
+end
+
+def update_required?
+  ttl < halflife
+end
+
+def current_value
+  `#{File.join(PROJECT_DIR, command)}`
+end
+
+while true
+  CONFIG["plugins"].keys.each do |key|
+    @plugin = key
+    set if update_required?
+  end
+
+  sleep 0.5
+end

@@ -1,0 +1,21 @@
+---
+redis:
+  host: 127.0.0.1
+  port: 6379
+
+plugins:
+  cpu_used:
+    command: plugins/linux/system-cpu
+    max_age: 10
+
+  cpu_credits:
+    command: plugins/linux/aws-cpu_credits
+    max_age: 300
+
+  disk_used:
+    command: plugins/linux/system-disk
+    max_age: 60
+
+  memory_used:
+    command: plugins/linux/system-memory
+    max_age: 30

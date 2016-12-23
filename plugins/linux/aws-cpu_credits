@@ -1,25 +1,27 @@
 #!/usr/bin/env bash
-source $(dirname $0)/../../config
-source $(dirname $0)/../../lib/aws
-source $(dirname $0)/../../lib/redis
+INSTANCE_ID=$(curl 169.254.169.254/latest/meta-data/instance-id 2> /dev/null)
+INSTANCE_TYPE=$(curl 169.254.169.254/latest/meta-data/instance-type 2> /dev/null)
 
-REDIS_KEY="${namespace}.aws_cpu_credit"
-REDIS_EXPIRE=300
-
-_usage() {
-  echo "$0 [get|set]"
-}
+case ${INSTANCE_TYPE} in
+  "t2.nano")    MAX_CREDITS=72   ;;
+  "t2.micro")   MAX_CREDITS=144  ;;
+  "t2.small")   MAX_CREDITS=288  ;;
+  "t2.medium")  MAX_CREDITS=576  ;;
+  "t2.large")   MAX_CREDITS=864  ;;
+  "t2.xlarge")  MAX_CREDITS=1296 ;;
+  "t2.2xlarge") MAX_CREDITS=1944 ;;
+esac
 
 _date_formatted() {
   echo $(date -u "$@" --iso-8601=minute | cut -d+ -f1):00
 }
 
-_aws_cpu_credits() {
+cpu_credits() {
   now=$(date +%s)
   aws cloudwatch get-metric-statistics                       \
     --namespace "AWS/EC2"                                    \
     --metric-name "CPUCreditBalance"                         \
-    --dimensions Name=InstanceId,Value=$(aws_instance_id)    \
+    --dimensions Name=InstanceId,Value=${INSTANCE_ID}        \
     --start-time $(_date_formatted --date="60 minutes ago")  \
     --end-time=$(_date_formatted --date="now")               \
     --period 60                                              \
@@ -28,9 +30,5 @@ _aws_cpu_credits() {
     --region 'ap-southeast-2'
 }
 
-_aws_cpu_credit_percentage() {
-  echo "100 / ( $(aws_maximum_cpu_credits) / $(_aws_cpu_credits) )" \
-    | bc
-}
-
-redis_get || redis_set $(_aws_cpu_credit_percentage)
+echo "100 / ( ${MAX_CREDITS} / $(cpu_credits) )" \
+  | bc
