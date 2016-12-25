@@ -4,6 +4,7 @@ start: redis
 
 redis:
 	docker run -d \
+		--restart=always \
 		-p 6379:6379 \
 		redis
 
